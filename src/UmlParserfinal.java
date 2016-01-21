@@ -17,10 +17,15 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 public class UmlParserfinal {
+	// no static here. use only when its necessary.
 	public static String s = "@startuml\n";
 	URLClassLoader cl;
 
 	// method to delete files with .class extension
+	// naming
+	// nice little method. This is how a method should be. 
+	// you can still refactor to say deleteClassFile a separatemethod and call that in this method in the for loop.
+	// easy to test each action that way
 	public void DeleteClassFiles(String arg) {
 		File dir = new File(arg);
 		File[] content = dir.listFiles();
@@ -31,6 +36,10 @@ public class UmlParserfinal {
 	}
 
 	// converting a .java file to .class file
+	// naming
+	// you say convert to Class,. Why is not returning the class object.
+	// dont use static for this.
+	// method should be like public Class convertToClass(String classname)
 	public void ConvertToClass(String arg) {
 		try {
 			File dir = new File(arg);
@@ -56,6 +65,7 @@ public class UmlParserfinal {
 	}
 
 	// add .class names to List
+	// you say add to the list. why does it not return the list? 
 	public void AddClassNamestoList(File currentFile) {
 		ArrayList<String> className = new ArrayList<String>();
 		if (currentFile.isFile() && currentFile.getName().endsWith(".class")) {
@@ -74,6 +84,8 @@ public class UmlParserfinal {
 	// get interfaces and superclasses
 	private void GetInterfaces(String temp) {
 		try {
+			// you should not load the class everytime from string.
+			// time consuming operation. load it once and pass around the Class object.
 			Class<?> cls = cl.loadClass(temp);
 			String clname = cls.getSimpleName();// getclassname
 			Class[] interfaces = cls.getInterfaces();
@@ -92,6 +104,7 @@ public class UmlParserfinal {
 				if (!ex.getName().contains("java."))
 					s = s + ex + " " + "<|--" + " " + claname + "\n";
 			} else if (impls == null || ex == null) {
+				// string builder. read on stringbuilder vs string appending.
 				s = s + "class" + " " + claname + "\n";
 			} else if (impls != null) {
 				for (Class<?> i : interfaces)
@@ -104,8 +117,11 @@ public class UmlParserfinal {
 	}
 
 	// get Fields
+	// whats temp ?
 	public void getFields(String temp) {
 		try {
+			// you should not load the class everytime from string.
+			// time consuming operation. load it once and pass around the Class object.
 			Class<?> cls = cl.loadClass(temp);
 			String clname = cls.getSimpleName();
 			Field[] fields = cls.getDeclaredFields();// getfields
@@ -140,15 +156,26 @@ public class UmlParserfinal {
 
 	}
 
+	// naming conventions.
+	// a method should not cross beyond 25 lines. if it does, time to refactor into small methods. - break this one.
+	// its hard to read this method and it has lots of nested loops. - Dont do too much nested loops.
 	public void GetAssociations(ArrayList<String> classNames) {
+		// whats tempname. use proper name. see how you name below
+		// classNames = listOfClassNames
+		// tempName = className
 		ArrayList<String> tempName = classNames;
 		try {
 			for (String temp : tempName) {
+				// you should not load the class everytime from string.
+				// time consuming operation. load it once and pass around the Class object.
 				Class<?> cls = cl.loadClass(temp);
+				// naming
 				String clname = cls.getSimpleName();
 				Method[] allMethod1 = cls.getDeclaredMethods();
 				for (Method method : allMethod1) {
 					for (String temp1 : tempName) {
+						// you should not load the class everytime from string.
+						// time consuming operation. load it once and pass around the Class object.
 						Class<?> cls1 = cl.loadClass(temp1);// loadclass
 						String clsname = cls1.getSimpleName();
 						Method[] all = cls1.getDeclaredMethods();
@@ -158,6 +185,9 @@ public class UmlParserfinal {
 								if (cls.isInterface()
 										&& !s.contains(clname + "<.." + clsname)
 										&& !clsname.equalsIgnoreCase(clname))
+									// dont use static string to these manipulations.
+									// pass in string or return strings.
+									// why not use stringbuilder instead of strings? - read and modify
 									s = s + clname + "<.." + " " + clsname
 											+ "\n";
 							}
@@ -207,6 +237,7 @@ public class UmlParserfinal {
 		}
 	}
 
+	// why static
 	public static boolean isGetter(Method method) {
 		if (!method.getName().startsWith("get"))
 			return false;
@@ -217,6 +248,7 @@ public class UmlParserfinal {
 		return true;
 	}
 
+	// why static
 	public static boolean isSetter(Method method) {
 		if (!method.getName().startsWith("set"))
 			return false;
@@ -227,21 +259,29 @@ public class UmlParserfinal {
 
 	public static void main(String[] args) {
 		try {
+			// dont give unrecoqnizable variable names. its not useful. 
+			// google on camecasing for java and variable names.
 			UmlParserfinal obj = new UmlParserfinal();
+			// Why is there a hard coded path ? remove hard coded paths.
 			String argument = "C:\\input\\foo4\\";
-			obj.DeleteClassFiles(argument);// Delete all the existing class
-											// files
-			obj.ConvertToClass(argument);// converting a .java file to .class
-											// file
+			// method names shouldnt start with capital letters.
+			// its a naming convention. google the java appropriate naming convention
+			obj.DeleteClassFiles(argument);// Delete all the existing class files
+			// naming convention						
+			obj.ConvertToClass(argument);// converting a .java file to .class file
 			File dir = new File(argument);// list all files in the directory
 			File[] allFiles = dir.listFiles();
 			for (File currentFile : allFiles) {
-				obj.AddClassNamestoList(currentFile);// add the names of classes
-														// to the List
+				// naming convention
+				obj.AddClassNamestoList(currentFile);// add the names of classe to the List
 
 			}
+			// why static string. Dont use static unless you need to
+			// tell me why you used static string first.
 			s = s + "@enduml\n";
 			UmlGenerator p = new UmlGenerator();
+			// name of the method should be an action. class name should be the Noun. UML generator is correct for the class.
+			// whats uml creator means ? is it generateUml()? you should know what a method does just by reading its name
 			p.umlCreator(s);
 		} catch (Exception e) {
 			e.printStackTrace();
